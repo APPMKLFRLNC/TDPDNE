@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Party Jukebox</title>
+<link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <header>
+    <h1>🎧 Party Jukebox</h1>
+    <div id="status" class="status">Loading…</div>
+  </header>
+
+  <main>
+    <section id="join-section" class="card hidden">
+      <h2>Add your songs</h2>
+      <p>Scan to join the playlist in Apple Music, then add whatever you want to hear.</p>
+      <img id="join-qr" alt="Scan to join the playlist" width="220" height="220" />
+      <a id="join-link" class="join-link" href="#" target="_blank" rel="noopener"></a>
+    </section>
+
+    <section id="connect-section" class="card hidden">
+      <p>The DJ needs to connect Apple Music once so this screen can read new requests.</p>
+      <button id="connect-btn">Connect Apple Music</button>
+    </section>
+
+    <section class="card queue-card">
+      <h2>Now queued</h2>
+      <ul id="queue-list"></ul>
+      <p id="empty-state" class="empty hidden">No requests yet — be the first!</p>
+    </section>
+  </main>
+
+  <script src="https://js-cdn.music.apple.com/musickit/v3/musickit.js"></script>
+  <script src="/app.js"></script>
+</body>
+</html>

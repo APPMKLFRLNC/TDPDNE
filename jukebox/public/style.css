@@ -1,0 +1,162 @@
+:root {
+  color-scheme: dark;
+  --bg: #0b0c10;
+  --card: #16181d;
+  --text: #f5f5f7;
+  --muted: #9a9ca3;
+  --accent: #fa2d48;
+  --ok: #30d158;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: var(--bg);
+  color: var(--text);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32px 24px 64px;
+}
+
+header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+
+h1 {
+  font-size: 2.4rem;
+  margin: 0 0 8px;
+}
+
+.status {
+  color: var(--muted);
+  font-size: 1.1rem;
+}
+
+main {
+  width: 100%;
+  max-width: 640px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.card {
+  background: var(--card);
+  border-radius: 20px;
+  padding: 24px;
+  text-align: center;
+}
+
+.card h2 {
+  margin-top: 0;
+}
+
+#join-qr {
+  border-radius: 12px;
+  margin: 12px 0;
+  background: white;
+  padding: 8px;
+}
+
+.join-link {
+  display: block;
+  color: var(--accent);
+  word-break: break-all;
+  text-decoration: none;
+  font-size: 0.95rem;
+}
+
+button {
+  background: var(--accent);
+  color: white;
+  border: none;
+  border-radius: 999px;
+  padding: 14px 28px;
+  font-size: 1.05rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+button:active {
+  opacity: 0.85;
+}
+
+.queue-card {
+  text-align: left;
+}
+
+#queue-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.queue-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  background: #1f2128;
+  border-radius: 14px;
+  padding: 14px 18px;
+}
+
+.queue-item-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.title {
+  font-weight: 600;
+  font-size: 1.05rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.artist {
+  color: var(--muted);
+  font-size: 0.9rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.badge {
+  flex-shrink: 0;
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 6px 12px;
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.badge.matched {
+  background: rgba(48, 209, 88, 0.15);
+  color: var(--ok);
+}
+
+.badge.unmatched {
+  background: rgba(154, 156, 163, 0.15);
+  color: var(--muted);
+}
+
+.empty {
+  color: var(--muted);
+  text-align: center;
+}
+
+.hidden {
+  display: none;
+}
