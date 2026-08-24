@@ -1,4 +1,4 @@
-import { loadConfig, isAppleMusicConfigured } from './config.js';
+import { loadConfig, hasDeveloperCredentials, isPlaylistSyncConfigured } from './config.js';
 import { Store } from './store.js';
 import { scanLibrary } from './libraryScanner.js';
 import { startPoller } from './poller.js';
@@ -19,18 +19,20 @@ async function main() {
   console.log(`Indexed ${library.length} local track(s).`);
 
   if (config.demoMode) {
-    console.log('DEMO_MODE is on: seeding fake requests instead of polling Apple Music.');
+    console.log('DEMO_MODE is on: seeding fake requests instead of using real Apple Music search.');
     seedDemoData(config, store, library);
-  } else if (isAppleMusicConfigured(config)) {
-    startPoller(config, store, library);
-  } else {
+  } else if (!hasDeveloperCredentials(config)) {
     console.warn(
-      'Apple Music is not fully configured (APPLE_TEAM_ID / APPLE_KEY_ID / APPLE_PRIVATE_KEY_PATH / APPLE_MUSIC_PLAYLIST_ID). ' +
-        'Set DEMO_MODE=true in .env to preview the kiosk UI without it.',
+      'Apple Music is not configured (APPLE_TEAM_ID / APPLE_KEY_ID / APPLE_PRIVATE_KEY_PATH). ' +
+        'The kiosk search box needs these. Set DEMO_MODE=true in .env to preview the UI without them.',
     );
   }
 
-  const app = createServer(config, store);
+  if (isPlaylistSyncConfigured(config)) {
+    startPoller(config, store, library);
+  }
+
+  const app = createServer(config, store, library);
   app.listen(config.port, () => {
     console.log(`Jukebox kiosk running at http://localhost:${config.port}`);
   });

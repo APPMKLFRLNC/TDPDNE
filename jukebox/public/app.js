@@ -1,13 +1,39 @@
 const statusEl = document.getElementById('status');
-const joinSection = document.getElementById('join-section');
-const joinQr = document.getElementById('join-qr');
-const joinLink = document.getElementById('join-link');
+const notConfiguredEl = document.getElementById('not-configured');
+const searchSection = document.getElementById('search-section');
+const searchInput = document.getElementById('search-input');
+const searchResults = document.getElementById('search-results');
 const connectSection = document.getElementById('connect-section');
 const connectBtn = document.getElementById('connect-btn');
 const queueList = document.getElementById('queue-list');
 const emptyState = document.getElementById('empty-state');
 
 let musicKitReady = false;
+let searchTimer = null;
+let searchSeq = 0;
+
+function escapeHtml(str) {
+  const div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
+async function loadConfig() {
+  const res = await fetch('/api/config');
+  const config = await res.json();
+
+  searchSection.classList.toggle('hidden', !config.searchEnabled);
+  notConfiguredEl.classList.toggle('hidden', config.searchEnabled);
+  connectSection.classList.toggle('hidden', !(config.playlistSyncConfigured && !config.connected));
+
+  statusEl.textContent = config.demoMode
+    ? 'Demo mode'
+    : config.searchEnabled
+      ? 'Ready'
+      : 'Apple Music not configured';
+
+  return config;
+}
 
 async function setupMusicKit() {
   if (musicKitReady || typeof MusicKit === 'undefined') return;
@@ -25,41 +51,9 @@ async function setupMusicKit() {
   }
 }
 
-async function loadConfig() {
-  const res = await fetch('/api/config');
-  const config = await res.json();
-
-  if (config.joinUrl) {
-    joinSection.classList.remove('hidden');
-    joinQr.src = '/api/join-qr.png';
-    joinLink.href = config.joinUrl;
-    joinLink.textContent = config.joinUrl;
-  }
-
-  if (config.configured && !config.connected) {
-    connectSection.classList.remove('hidden');
-    await setupMusicKit();
-  } else {
-    connectSection.classList.add('hidden');
-  }
-
-  statusEl.textContent = config.demoMode
-    ? 'Demo mode'
-    : config.connected
-      ? 'Connected'
-      : config.configured
-        ? 'Not connected'
-        : 'Apple Music not configured';
-
-  return config;
-}
-
 connectBtn.addEventListener('click', async () => {
   await setupMusicKit();
-  if (!musicKitReady) {
-    statusEl.textContent = 'Connection failed';
-    return;
-  }
+  if (!musicKitReady) return;
   const music = MusicKit.getInstance();
   try {
     const musicUserToken = await music.authorize();
@@ -69,18 +63,88 @@ connectBtn.addEventListener('click', async () => {
       body: JSON.stringify({ musicUserToken }),
     });
     connectSection.classList.add('hidden');
-    statusEl.textContent = 'Connected';
   } catch (err) {
     console.error('Authorization failed', err);
-    statusEl.textContent = 'Connection failed';
   }
 });
 
-function escapeHtml(str) {
-  const div = document.createElement('div');
-  div.textContent = str;
-  return div.innerHTML;
+searchInput.addEventListener('input', () => {
+  clearTimeout(searchTimer);
+  const term = searchInput.value.trim();
+  if (!term) {
+    searchResults.innerHTML = '';
+    return;
+  }
+  searchTimer = setTimeout(() => runSearch(term), 350);
+});
+
+async function runSearch(term) {
+  const seq = ++searchSeq;
+  try {
+    const res = await fetch(`/api/search?q=${encodeURIComponent(term)}`);
+    if (seq !== searchSeq) return; // a newer search superseded this one
+    if (!res.ok) {
+      searchResults.innerHTML = '<li class="empty">Search failed — try again.</li>';
+      return;
+    }
+    const { results } = await res.json();
+    renderResults(results);
+  } catch (err) {
+    if (seq === searchSeq) {
+      searchResults.innerHTML = '<li class="empty">Search failed — try again.</li>';
+    }
+  }
 }
+
+function renderResults(results) {
+  searchResults.innerHTML = '';
+  if (results.length === 0) {
+    searchResults.innerHTML = '<li class="empty">No matches.</li>';
+    return;
+  }
+  for (const song of results) {
+    const li = document.createElement('li');
+    li.className = 'result-item';
+    li.innerHTML = `
+      ${song.artworkUrl ? `<img src="${song.artworkUrl}" alt="" class="artwork" />` : '<div class="artwork placeholder"></div>'}
+      <div class="queue-item-info">
+        <span class="title">${escapeHtml(song.title)}</span>
+        <span class="artist">${escapeHtml(song.artist)}</span>
+      </div>
+      <button class="add-btn"
+        data-id="${escapeHtml(song.id)}"
+        data-title="${escapeHtml(song.title)}"
+        data-artist="${escapeHtml(song.artist)}"
+        data-duration="${song.durationSeconds ?? ''}">Add</button>
+    `;
+    searchResults.appendChild(li);
+  }
+}
+
+searchResults.addEventListener('click', async (e) => {
+  const btn = e.target.closest('.add-btn');
+  if (!btn || btn.disabled) return;
+  btn.disabled = true;
+  btn.textContent = 'Added ✓';
+
+  await fetch('/api/request', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      id: btn.dataset.id,
+      title: btn.dataset.title,
+      artist: btn.dataset.artist,
+      durationSeconds: btn.dataset.duration ? Number(btn.dataset.duration) : undefined,
+    }),
+  });
+
+  refreshQueue();
+  setTimeout(() => {
+    searchInput.value = '';
+    searchResults.innerHTML = '';
+    searchInput.focus();
+  }, 700);
+});
 
 async function refreshQueue() {
   const res = await fetch('/api/state');

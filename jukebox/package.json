@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "description": "Guests add songs to a shared Apple Music playlist; the app matches new requests against the DJ's local library and keeps a hot-folder playlist in sync for their DJ software.",
+  "description": "Guests search Apple Music and add requests right on the iPad kiosk; the app matches new requests against the DJ's local library and keeps a hot-folder playlist in sync for their DJ software.",
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
@@ -13,14 +13,12 @@
     "dotenv": "^16.4.5",
     "express": "^4.21.1",
     "jsonwebtoken": "^9.0.2",
-    "music-metadata": "^11.15.0",
-    "qrcode": "^1.5.4"
+    "music-metadata": "^11.15.0"
   },
   "devDependencies": {
     "@types/express": "^4.17.21",
     "@types/jsonwebtoken": "^9.0.7",
     "@types/node": "^22.9.0",
-    "@types/qrcode": "^1.5.5",
     "tsx": "^4.19.2",
     "typescript": "^5.6.3"
   }

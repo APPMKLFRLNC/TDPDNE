@@ -5,8 +5,8 @@ export interface Config {
   appleTeamId?: string;
   appleKeyId?: string;
   applePrivateKeyPath?: string;
+  appleMusicStorefront: string;
   appleMusicPlaylistId?: string;
-  joinUrl?: string;
   libraryPath?: string;
   hotfolderPath?: string;
   hotfolderFilename: string;
@@ -21,8 +21,8 @@ export function loadConfig(): Config {
     appleTeamId: process.env.APPLE_TEAM_ID || undefined,
     appleKeyId: process.env.APPLE_KEY_ID || undefined,
     applePrivateKeyPath: process.env.APPLE_PRIVATE_KEY_PATH || undefined,
+    appleMusicStorefront: process.env.APPLE_MUSIC_STOREFRONT || 'us',
     appleMusicPlaylistId: process.env.APPLE_MUSIC_PLAYLIST_ID || undefined,
-    joinUrl: process.env.JOIN_URL || undefined,
     libraryPath: process.env.LIBRARY_PATH || undefined,
     hotfolderPath: process.env.HOTFOLDER_PATH || undefined,
     hotfolderFilename: process.env.HOTFOLDER_FILENAME || 'jukebox-queue.m3u8',
@@ -32,11 +32,15 @@ export function loadConfig(): Config {
   };
 }
 
-export function isAppleMusicConfigured(config: Config): boolean {
-  return !!(
-    config.appleTeamId &&
-    config.appleKeyId &&
-    config.applePrivateKeyPath &&
-    config.appleMusicPlaylistId
-  );
+/** Needed for catalog search -- the primary, guest-facing way to request songs on the kiosk. */
+export function hasDeveloperCredentials(config: Config): boolean {
+  return !!(config.appleTeamId && config.appleKeyId && config.applePrivateKeyPath);
+}
+
+/**
+ * Needed only for the optional secondary path: mirroring kiosk requests into a real Apple
+ * Music library playlist, and/or picking up tracks someone added from the Apple Music app.
+ */
+export function isPlaylistSyncConfigured(config: Config): boolean {
+  return hasDeveloperCredentials(config) && !!config.appleMusicPlaylistId;
 }
